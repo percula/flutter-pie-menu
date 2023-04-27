@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_circular_text/circular_text/model.dart';
+import 'package:flutter_circular_text/circular_text/widget.dart';
 import 'package:pie_menu/pie_menu.dart';
 
 /// Displays [PieAction]s of the [PieMenu] on the [PieCanvas].
@@ -11,6 +13,7 @@ class PieButton extends StatefulWidget {
     required this.action,
     required this.menuActive,
     required this.hovered,
+    required this.center,
     required this.theme,
     required this.fadeDuration,
     required this.hoverDuration,
@@ -25,6 +28,9 @@ class PieButton extends StatefulWidget {
 
   /// Whether this [PieButton] is currently hovered.
   final bool hovered;
+
+  /// Whether this is the center [PieButton]
+  final bool center;
 
   /// Behavioral and visual structure of this button.
   final PieTheme theme;
@@ -88,6 +94,35 @@ class _PieButtonState extends State<PieButton>
       _controller.forward(from: 0);
     }
 
+    final button = Container(
+      decoration: (widget.hovered
+          ? _buttonThemeHovered.decoration
+          : _buttonTheme.decoration) ??
+          BoxDecoration(
+            shape: BoxShape.circle,
+            color: widget.hovered
+                ? _buttonThemeHovered.backgroundColor
+                : _buttonTheme.backgroundColor,
+          ),
+      child: Center(
+        child: Padding(
+          padding: _action.padding,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              iconTheme: IconThemeData(
+                color: widget.hovered
+                    ? _buttonThemeHovered.iconColor
+                    : _buttonTheme.iconColor,
+                size: _theme.iconSize,
+              ),
+            ),
+            child: _action.builder?.call(widget.hovered) ??
+                _action.child!,
+          ),
+        ),
+      ),
+    );
+
     return OverflowBox(
       maxHeight: _theme.buttonSize * 2,
       maxWidth: _theme.buttonSize * 2,
@@ -103,43 +138,53 @@ class _PieButtonState extends State<PieButton>
                 duration: widget.hoverDuration,
                 curve: Curves.ease,
                 top: widget.hovered
-                    ? _theme.buttonSize / 2 -
-                        sin(widget.angle) * _theme.hoverDisplacement
+                    ? _theme.buttonSize / 2 - (widget.center ? 0 :
+                        sin(widget.angle) * _theme.hoverDisplacement)
                     : _theme.buttonSize / 2,
                 right: widget.hovered
-                    ? _theme.buttonSize / 2 -
-                        cos(widget.angle) * _theme.hoverDisplacement
+                    ? _theme.buttonSize / 2 - (widget.center ? 0 :
+                        cos(widget.angle) * _theme.hoverDisplacement)
                     : _theme.buttonSize / 2,
-                child: Container(
+                child: _theme.showTooltipCircle ? Container(
                   height: _theme.buttonSize,
                   width: _theme.buttonSize,
                   decoration: (widget.hovered
-                          ? _buttonThemeHovered.decoration
-                          : _buttonTheme.decoration) ??
+                      ? _buttonThemeHovered.tooltipDecoration
+                      : _buttonTheme.tooltipDecoration) ??
                       BoxDecoration(
                         shape: BoxShape.circle,
                         color: widget.hovered
-                            ? _buttonThemeHovered.backgroundColor
-                            : _buttonTheme.backgroundColor,
+                            ? _buttonThemeHovered.tooltipBackgroundColor
+                            : _buttonTheme.tooltipBackgroundColor,
                       ),
                   child: Center(
-                    child: Padding(
-                      padding: _action.padding,
-                      child: Theme(
-                        data: Theme.of(context).copyWith(
-                          iconTheme: IconThemeData(
-                            color: widget.hovered
-                                ? _buttonThemeHovered.iconColor
-                                : _buttonTheme.iconColor,
-                            size: _theme.iconSize,
-                          ),
+                    child: Stack(
+                      fit: StackFit.passthrough,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: button,
                         ),
-                        child: _action.builder?.call(widget.hovered) ??
-                            _action.child!,
-                      ),
+                        Center(
+                          child: CircularText(
+                              radius: _theme.buttonSize - 12,
+                              position: CircularTextPosition.inside,
+                              children: [
+                                TextItem(
+                                  text: Text(widget.action.tooltip,
+                                      style: _theme.tooltipStyle ?? TextStyle(fontSize: 16)),
+                                  space: 16,
+                                  startAngle: -90,
+                                  startAngleAlignment: StartAngleAlignment.center,
+                                  direction: CircularTextDirection.clockwise,
+                                )
+                              ]
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                ),
+                ) : button,
               ),
             ],
           ),

@@ -9,6 +9,11 @@ class PieTheme {
   /// Creates a [PieTheme] to configure [PieMenu]s.
   const PieTheme({
     this.bouncingMenu = true,
+    this.animateChild = true,
+    this.dismissHint,
+    this.dismissHintPadding = const EdgeInsets.all(16),
+    this.dismissHintAlignment = Alignment.bottomLeft,
+    this.dismissHintStyle,
     this.brightness = Brightness.light,
     this.overlayColor,
     this.pointerColor,
@@ -27,6 +32,8 @@ class PieTheme {
     this.pointerSize = 42,
     this.tooltipPadding = const EdgeInsets.symmetric(horizontal: 32),
     this.tooltipStyle,
+    this.showTooltip = true,
+    this.showTooltipCircle = true,
     this.pieBounceDuration = const Duration(seconds: 1),
     this.menuBounceDuration = const Duration(milliseconds: 120),
     this.menuBounceDistance = 24,
@@ -38,6 +45,21 @@ class PieTheme {
   });
 
   final bool bouncingMenu;
+
+  /// Whether to animate the menu child
+  final bool animateChild;
+
+  /// Text to display when menu shown, telling use how to dismiss the menu
+  final String? dismissHint;
+
+  /// Padding value of the [dismissHint] at the edges of [PieCanvas].
+  final EdgeInsets dismissHintPadding;
+
+  /// Alignment of the [dismissHint] relative to the [PieCanvas].
+  final Alignment dismissHintAlignment;
+
+  /// Style of the [dismissHint] text.
+  final TextStyle? dismissHintStyle;
 
   /// How the background and tooltip texts should be displayed
   /// if they are not specified explicitly.
@@ -76,6 +98,12 @@ class PieTheme {
 
   /// Style of the tooltip text.
   final TextStyle? tooltipStyle;
+
+  /// Whether to show the tooltip
+  final bool showTooltip;
+
+  /// Whether to show the tooltip in the circle around the button
+  final bool showTooltipCircle;
 
   /// Duration of [PieButton] bounce animation.
   final Duration pieBounceDuration;
@@ -125,6 +153,8 @@ class PieTheme {
     double? angleOffset,
     double? buttonSize,
     double? pointerSize,
+    bool? showTooltip,
+    bool? showTooltipCircle,
     EdgeInsets? tooltipPadding,
     TextStyle? tooltipStyle,
     Duration? pieBounceDuration,
@@ -148,6 +178,8 @@ class PieTheme {
       angleOffset: angleOffset ?? this.angleOffset,
       buttonSize: buttonSize ?? this.buttonSize,
       pointerSize: pointerSize ?? this.pointerSize,
+      showTooltip: showTooltip ?? this.showTooltip,
+      showTooltipCircle: showTooltipCircle ?? this.showTooltipCircle,
       tooltipPadding: tooltipPadding ?? this.tooltipPadding,
       tooltipStyle: tooltipStyle ?? this.tooltipStyle,
       pieBounceDuration: pieBounceDuration ?? this.pieBounceDuration,

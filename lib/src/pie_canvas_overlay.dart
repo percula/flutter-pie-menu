@@ -72,6 +72,9 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
   /// Child widget of [PieMenu].
   Widget? _menuChild;
 
+  /// Center widget of [PieMenu].
+  PieAction? _center;
+
   /// Render box of [_menuChild].
   RenderBox? _menuRenderBox;
 
@@ -253,7 +256,7 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
                   ),
 
                   /// Pie Menu child
-                  if (_menuRenderBox != null && _menuRenderBox!.attached)
+                  if (_menuRenderBox != null && _menuRenderBox!.attached && _theme.animateChild)
                     Positioned(
                       top: _menuOffset.dy - _canvasOffset.dy,
                       left: _menuOffset.dx - _canvasOffset.dx,
@@ -269,8 +272,36 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
                       ),
                     ),
 
+                  /// Dismiss hint
+                  if (_theme.dismissHint != null)
+                    SafeArea(
+                      child: Align(
+                        alignment: _theme.dismissHintAlignment,
+                        child: Padding(
+                          padding: _theme.dismissHintPadding,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: AnimatedOpacity(
+                                  opacity: menuActive
+                                      ? 1
+                                      : 0,
+                                  duration: _theme.hoverDuration,
+                                  curve: Curves.ease,
+                                  child: Text(
+                                    _theme.dismissHint!,
+                                    style: _theme.dismissHintStyle,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
                   /// Tooltip
-                  if (_tooltip != null)
+                  if (_tooltip != null && _theme.showTooltip && !_theme.showTooltipCircle)
                     Positioned(
                       top: dy < _canvasHeight / 2
                           ? dy + _theme.distance + _theme.buttonSize
@@ -319,7 +350,16 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
                       theme: _theme,
                     ),
                     children: [
-                      DecoratedBox(
+                      _center != null ? PieButton(
+                        action: _center!,
+                        angle: 0,
+                        menuActive: menuActive,
+                        hovered: -1 == _hoveredAction,
+                        center: true,
+                        theme: _theme,
+                        fadeDuration: _theme.fadeDuration,
+                        hoverDuration: _theme.hoverDuration,
+                      ) : DecoratedBox(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
@@ -334,6 +374,7 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
                           angle: _getActionAngle(i),
                           menuActive: menuActive,
                           hovered: i == _hoveredAction,
+                          center: false,
                           theme: _theme,
                           fadeDuration: _theme.fadeDuration,
                           hoverDuration: _theme.hoverDuration,
@@ -369,6 +410,7 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
     required Offset offset,
     required PieMenuState state,
     required Widget child,
+    required PieAction? center,
     required RenderBox renderBox,
     required List<PieAction> actions,
     required PieTheme? theme,
@@ -384,6 +426,7 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
     _actions = actions;
     menuState = state;
     _menuChild = child;
+    _center = center;
     _menuRenderBox = renderBox;
 
     if (!_pressed) {
@@ -444,7 +487,11 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
     if (menuActive) {
       if (isOutsideOfPointerArea(offset) || _pressedAgain) {
         if (_hoveredAction != null) {
-          _actions[_hoveredAction!].onSelect();
+          if (_hoveredAction! < 0) {
+            _center?.onSelect();
+          } else {
+            _actions[_hoveredAction!].onSelect();
+          }
         }
 
         menuState?.setVisibility(true);
@@ -476,6 +523,22 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
             setState(() {
               _hoveredAction = i;
               _tooltip = action.tooltip;
+            });
+          }
+          return;
+        }
+      }
+      if (_center != null) {
+        Offset centerActionOffset = Offset(
+          _pointerOffset.dx,
+          _pointerOffset.dy,
+        );
+        if ((centerActionOffset - offset).distance <
+            _theme.buttonSize / 2 + sqrt(_theme.buttonSize)) {
+          if (_hoveredAction != -1) {
+            setState(() {
+              _hoveredAction = -1;
+              _tooltip = _center?.tooltip;
             });
           }
           return;

@@ -15,8 +15,11 @@ class PieMenu extends StatefulWidget {
     super.key,
     this.theme,
     this.actions = const [],
+    this.center,
+    this.scale,
     this.onToggle,
     this.onTap,
+    this.showMenuOnTap,
     required this.child,
   });
 
@@ -29,11 +32,22 @@ class PieMenu extends StatefulWidget {
   /// Widget to be displayed when the menu is hidden.
   final Widget child;
 
+  /// Action to be displayed at the center (optional).
+  final PieAction? center;
+
+  /// Scale of pie menu
+  final ValueNotifier<double>? scale;
+
   /// Functional callback that is triggered when
   /// this [PieMenu] is opened and closed.
   final Function(bool active)? onToggle;
 
-  final VoidCallback? onTap;
+  /// Controller to determine whether the menu should be shown on tap.
+  final ValueNotifier<bool>? showMenuOnTap;
+
+  /// Functional callback that is triggered when
+  /// this [PieMenu] is tapped.
+  final Function()? onTap;
 
   @override
   State<PieMenu> createState() => PieMenuState();
@@ -148,12 +162,15 @@ class PieMenuState extends State<PieMenu> with SingleTickerProviderStateMixin {
       }
     });
 
-    return Listener(
+    return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onPointerDown: (event) {
+      onTapUp: (details) {
         _canTap = true;
 
-        _offset = event.position;
+        final renderObject = context.findRenderObject() as RenderBox;
+        final cornerOffset = renderObject.localToGlobal(Offset.zero);
+        _offset = Offset(cornerOffset.dx + (renderObject.paintBounds.width * (widget.scale?.value ?? 1) / 2), cornerOffset.dy + (renderObject.paintBounds.height * (widget.scale?.value ?? 1) / 2));
+        // _offset = details.globalPosition;
 
         if (!_canvas.menuActive) {
           if (_theme.delayDuration == Duration.zero) {
@@ -172,26 +189,16 @@ class PieMenuState extends State<PieMenu> with SingleTickerProviderStateMixin {
             child: _bouncingChild,
             renderBox: context.findRenderObject() as RenderBox,
             actions: widget.actions,
+            center: widget.center,
             theme: widget.theme,
             onMenuToggle: widget.onToggle,
           );
         }
       },
-      onPointerMove: (event) {
-        if ((event.position - _offset).distance > _theme.pointerSize / 2) {
-          debounce();
-        }
-      },
-      onPointerUp: (event) {
-        if (_canTap && _offset == event.position) {
-          widget.onTap?.call();
-        }
-        debounce();
-      },
-      child: Opacity(
-        opacity: _childVisible ? 1 : 0,
-        child: _bouncingChild,
-      ),
+      child: _theme.animateChild ? Opacity(
+          opacity: _childVisible ? 1 : 0,
+          child: _bouncingChild,
+        ) : widget.child,
     );
   }
 }
