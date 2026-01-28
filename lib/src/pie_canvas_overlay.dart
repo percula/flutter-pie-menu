@@ -474,6 +474,11 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
     );
   }
 
+  /// Close the currently active menu programmatically.
+  void detachMenu({bool afterDelay = true}) {
+    _detachMenu(afterDelay: afterDelay);
+  }
+
   void _pointerDown(Offset offset) {
     if (menuActive) {
       _pressedAgain = true;

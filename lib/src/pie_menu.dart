@@ -7,12 +7,14 @@ import 'package:pie_menu/src/pie_button.dart';
 import 'package:pie_menu/src/pie_canvas.dart';
 import 'package:pie_menu/src/pie_canvas_overlay.dart';
 import 'package:pie_menu/src/pie_canvas_provider.dart';
+import 'package:pie_menu/src/pie_menu_controller.dart';
 import 'package:pie_menu/src/pie_theme.dart';
 
 /// Widget that displays [PieAction]s as circular buttons for its child.
 class PieMenu extends StatefulWidget {
   const PieMenu({
     super.key,
+    this.controller,
     this.theme,
     this.actions = const [],
     this.center,
@@ -22,6 +24,9 @@ class PieMenu extends StatefulWidget {
     this.showMenuOnTap,
     required this.child,
   });
+
+  /// Optional controller for programmatic menu control.
+  final PieMenuController? controller;
 
   /// Theme to use for this menu, overrides [PieCanvas] theme.
   final PieTheme? theme;
@@ -53,7 +58,9 @@ class PieMenu extends StatefulWidget {
   State<PieMenu> createState() => PieMenuState();
 }
 
-class PieMenuState extends State<PieMenu> with SingleTickerProviderStateMixin {
+class PieMenuState extends State<PieMenu>
+    with SingleTickerProviderStateMixin
+    implements PieMenuStateAccessor {
   var _childVisible = true;
 
   var _offset = Offset.zero;
@@ -68,6 +75,12 @@ class PieMenuState extends State<PieMenu> with SingleTickerProviderStateMixin {
   PieTheme get _theme => widget.theme ?? _canvasProvider.theme;
 
   PieCanvasOverlayState get _canvas => _canvasProvider.canvasKey.currentState!;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller?.attach(this);
+  }
 
   Size? _size;
 
@@ -138,8 +151,55 @@ class PieMenuState extends State<PieMenu> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
+    widget.controller?.detach();
     _bounceController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(PieMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.detach();
+      widget.controller?.attach(this);
+    }
+  }
+
+  // PieMenuStateAccessor implementation
+  @override
+  bool get isMenuActive => _canvas.menuActive;
+
+  @override
+  bool openMenu({Offset? offset}) {
+    if (_canvas.menuActive) return false;
+
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox == null) return false;
+
+    final size = renderBox.size;
+    final cornerOffset = renderBox.localToGlobal(Offset.zero);
+    final menuOffset = offset ??
+        Offset(
+          cornerOffset.dx + (size.width * (widget.scale?.value ?? 1) / 2),
+          cornerOffset.dy + (size.height * (widget.scale?.value ?? 1) / 2),
+        );
+
+    _canvas.attachMenu(
+      offset: menuOffset,
+      state: this,
+      child: _bouncingChild,
+      renderBox: renderBox,
+      actions: widget.actions,
+      center: widget.center,
+      theme: widget.theme,
+      onMenuToggle: widget.onToggle,
+    );
+    return true;
+  }
+
+  @override
+  void closeMenu() {
+    _canvas.detachMenu();
   }
 
   @override
