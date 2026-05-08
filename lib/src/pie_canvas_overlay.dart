@@ -113,7 +113,13 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
   }
 
   Offset get _canvasOffset {
-    return _renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+    try {
+      return _renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+    } on AssertionError {
+      // An ancestor RenderTransform may not be laid out yet during rebuilds
+      // triggered by overlays (e.g. Wiredash). Fall back to zero offset.
+      return Offset.zero;
+    }
   }
 
   Size get _canvasSize => _renderBox?.size ?? Size.zero;
