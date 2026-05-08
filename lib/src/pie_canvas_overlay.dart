@@ -499,9 +499,16 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
       if (isOutsideOfPointerArea(offset) || _pressedAgain) {
         if (_hoveredAction != null) {
           if (_hoveredAction! < 0) {
-            _center?.onSelect();
+            // Only trigger center action if it's enabled
+            if (_center?.enabled ?? true) {
+              _center?.onSelect();
+            }
           } else {
-            _actions[_hoveredAction!].onSelect();
+            // Only trigger action if it's enabled
+            final action = _actions[_hoveredAction!];
+            if (action.enabled) {
+              action.onSelect();
+            }
           }
         }
 

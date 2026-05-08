@@ -94,30 +94,35 @@ class _PieButtonState extends State<PieButton>
       _controller.forward(from: 0);
     }
 
-    final button = Container(
-      decoration: (widget.hovered
-          ? _buttonThemeHovered.decoration
-          : _buttonTheme.decoration) ??
-          BoxDecoration(
-            shape: BoxShape.circle,
-            color: widget.hovered
-                ? _buttonThemeHovered.backgroundColor
-                : _buttonTheme.backgroundColor,
-          ),
-      child: Center(
-        child: Padding(
-          padding: _action.padding,
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              iconTheme: IconThemeData(
-                color: widget.hovered
-                    ? _buttonThemeHovered.iconColor
-                    : _buttonTheme.iconColor,
-                size: _theme.iconSize,
-              ),
+    final isEnabled = _action.enabled;
+
+    final button = Opacity(
+      opacity: isEnabled ? 1.0 : 0.4,
+      child: Container(
+        decoration: (widget.hovered && isEnabled
+            ? _buttonThemeHovered.decoration
+            : _buttonTheme.decoration) ??
+            BoxDecoration(
+              shape: BoxShape.circle,
+              color: widget.hovered && isEnabled
+                  ? _buttonThemeHovered.backgroundColor
+                  : _buttonTheme.backgroundColor,
             ),
-            child: _action.builder?.call(widget.hovered) ??
-                _action.child!,
+        child: Center(
+          child: Padding(
+            padding: _action.padding,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                iconTheme: IconThemeData(
+                  color: widget.hovered && isEnabled
+                      ? _buttonThemeHovered.iconColor
+                      : _buttonTheme.iconColor,
+                  size: _theme.iconSize,
+                ),
+              ),
+              child: _action.builder?.call(widget.hovered && isEnabled) ??
+                  _action.child!,
+            ),
           ),
         ),
       ),

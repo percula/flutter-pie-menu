@@ -14,6 +14,7 @@ class PieAction {
     this.padding = EdgeInsets.zero,
     this.buttonTheme,
     this.buttonThemeHovered,
+    this.enabled = true,
     required this.child,
   }) : builder = null;
 
@@ -25,6 +26,7 @@ class PieAction {
     this.padding = EdgeInsets.zero,
     this.buttonTheme,
     this.buttonThemeHovered,
+    this.enabled = true,
     required this.builder,
   }) : child = null;
 
@@ -46,6 +48,12 @@ class PieAction {
 
   /// Theme of [PieButton] when it is hovered.
   final PieButtonTheme? buttonThemeHovered;
+
+  /// Whether this action is enabled.
+  ///
+  /// When disabled, the button is visible but cannot be selected
+  /// and is displayed with reduced opacity.
+  final bool enabled;
 
   /// Widget to display inside [PieButton], usually an icon.
   ///
