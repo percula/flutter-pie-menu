@@ -1,5 +1,6 @@
 library pie_menu;
 
+export 'src/multi_pie_menu.dart';
 export 'src/pie_action.dart';
 export 'src/pie_button_theme.dart';
 export 'src/pie_canvas.dart';

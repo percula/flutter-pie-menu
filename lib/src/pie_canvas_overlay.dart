@@ -225,6 +225,23 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
     return radians(baseAngle - _theme.angleOffset - angleDifference * index);
   }
 
+  /// Returns the global position of an action button at the given index.
+  ///
+  /// This can be used to position a submenu at the selected action's location.
+  /// Only valid while the menu is active.
+  Offset getActionGlobalPosition(int actionIndex) {
+    final angle = _getActionAngle(actionIndex);
+    return Offset(
+      _pointerOffset.dx + _theme.distance * cos(angle),
+      _pointerOffset.dy - _theme.distance * sin(angle),
+    );
+  }
+
+  /// Returns the current menu center position.
+  ///
+  /// Only valid while the menu is active.
+  Offset get menuCenterPosition => _pointerOffset;
+
   @override
   Widget build(BuildContext context) {
     return Material(
