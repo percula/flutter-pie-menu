@@ -34,6 +34,7 @@ class PieTheme {
     this.tooltipStyle,
     this.showTooltip = true,
     this.showTooltipCircle = true,
+    this.tooltipCircleSpacing = 16,
     this.pieBounceDuration = const Duration(seconds: 1),
     this.menuBounceDuration = const Duration(milliseconds: 120),
     this.menuBounceDistance = 24,
@@ -105,6 +106,12 @@ class PieTheme {
   /// Whether to show the tooltip in the circle around the button
   final bool showTooltipCircle;
 
+  /// Angular spacing (in degrees) between characters when the tooltip is
+  /// rendered as curved text around the button (i.e. [showTooltipCircle] is
+  /// true). Lower values pack characters closer together. Has no effect when
+  /// [showTooltipCircle] is false.
+  final double tooltipCircleSpacing;
+
   /// Duration of [PieButton] bounce animation.
   final Duration pieBounceDuration;
 
@@ -155,6 +162,7 @@ class PieTheme {
     double? pointerSize,
     bool? showTooltip,
     bool? showTooltipCircle,
+    double? tooltipCircleSpacing,
     EdgeInsets? tooltipPadding,
     TextStyle? tooltipStyle,
     Duration? pieBounceDuration,
@@ -180,6 +188,7 @@ class PieTheme {
       pointerSize: pointerSize ?? this.pointerSize,
       showTooltip: showTooltip ?? this.showTooltip,
       showTooltipCircle: showTooltipCircle ?? this.showTooltipCircle,
+      tooltipCircleSpacing: tooltipCircleSpacing ?? this.tooltipCircleSpacing,
       tooltipPadding: tooltipPadding ?? this.tooltipPadding,
       tooltipStyle: tooltipStyle ?? this.tooltipStyle,
       pieBounceDuration: pieBounceDuration ?? this.pieBounceDuration,

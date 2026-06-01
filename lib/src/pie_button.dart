@@ -178,7 +178,7 @@ class _PieButtonState extends State<PieButton>
                                 TextItem(
                                   text: Text(widget.action.tooltip,
                                       style: _theme.tooltipStyle ?? TextStyle(fontSize: 16)),
-                                  space: 16,
+                                  space: _theme.tooltipCircleSpacing,
                                   startAngle: -90,
                                   startAngleAlignment: StartAngleAlignment.center,
                                   direction: CircularTextDirection.clockwise,
