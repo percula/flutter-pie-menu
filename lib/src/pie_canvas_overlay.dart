@@ -79,10 +79,23 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
   RenderBox? _menuRenderBox;
 
   /// Size of [_menuChild].
-  Size? get _menuSize => _menuRenderBox?.size;
+  Size? get _menuSize {
+    final box = _menuRenderBox;
+    return (box != null && box.hasSize) ? box.size : null;
+  }
 
   /// Offset of [_menuChild].
-  Offset get _menuOffset => _menuRenderBox!.localToGlobal(Offset.zero);
+  Offset get _menuOffset {
+    try {
+      return _menuRenderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+    } on AssertionError {
+      return Offset.zero;
+    } on StateError {
+      // RenderBox.size throws a StateError (in all build modes) when an
+      // ancestor RenderTransform is not laid out yet. Fall back to zero.
+      return Offset.zero;
+    }
+  }
 
   /// Currently pressed pointer offset.
   Offset _pointerOffset = Offset.zero;
@@ -118,6 +131,11 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
     } on AssertionError {
       // An ancestor RenderTransform may not be laid out yet during rebuilds
       // triggered by overlays (e.g. Wiredash). Fall back to zero offset.
+      return Offset.zero;
+    } on StateError {
+      // Since Flutter 3.4x, RenderBox.size throws a StateError instead of an
+      // AssertionError in release builds ("RenderBox was not laid out"), so
+      // the case above needs to be handled separately here.
       return Offset.zero;
     }
   }
@@ -279,7 +297,7 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
                   ),
 
                   /// Pie Menu child
-                  if (_menuRenderBox != null && _menuRenderBox!.attached && _theme.animateChild)
+                  if (_menuRenderBox != null && _menuRenderBox!.attached && _menuSize != null && _theme.animateChild)
                     Positioned(
                       top: _menuOffset.dy - _canvasOffset.dy,
                       left: _menuOffset.dx - _canvasOffset.dx,
