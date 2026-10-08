@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pie_menu/src/pie_action.dart';
 import 'package:pie_menu/src/pie_button.dart';
 import 'package:pie_menu/src/pie_canvas.dart';
@@ -162,12 +163,14 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    HardwareKeyboard.instance.addHandler(_handleKey);
   }
 
   @override
   void dispose() {
     _bounceController.dispose();
     WidgetsBinding.instance.removeObserver(this);
+    HardwareKeyboard.instance.removeHandler(_handleKey);
     super.dispose();
   }
 
@@ -517,7 +520,23 @@ class PieCanvasOverlayState extends State<PieCanvasOverlay>
 
   /// Close the currently active menu programmatically.
   void detachMenu({bool afterDelay = true}) {
+    if (menuActive) {
+      menuState?.setVisibility(true);
+      toggleMenu(false);
+      setState(() => menuActive = false);
+    }
     _detachMenu(afterDelay: afterDelay);
+  }
+
+  /// Escape closes an open menu without picking an action.
+  bool _handleKey(KeyEvent event) {
+    if (menuActive &&
+        event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
+      detachMenu();
+      return true;
+    }
+    return false;
   }
 
   void _pointerDown(Offset offset) {
